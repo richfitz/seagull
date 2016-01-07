@@ -33,7 +33,7 @@ readLines(realfile)
 ```
 
 ```
-## [1] "7424 wuz here"
+## [1] "8196 wuz here"
 ```
 
 The code above will wait until the db file is ready, read it, add a new line to it, then release the lock.  If multiple processes were trying to do this at once they would access the file in an unspecified order but a race condition between read and write is eliminated.
@@ -49,7 +49,7 @@ pids
 ```
 
 ```
-## [1] 7433 7442 7451 7460
+## [1] 8204 8212 8220 8228
 ```
 
 Run the code from above (slightly awkward due to controlling the cluster):
@@ -65,17 +65,22 @@ f <- function(lockfile, realfile) {
 ign <- parallel::clusterCall(cl, f, lockfile, realfile)
 ```
 
-The file now contains four entries, one from each node:
+The file now contains four entries, one from each node (plus the original line from the time we ran it locally):
 
 
 ```r
-readLines(realfile)
+writeLines(readLines(realfile))
 ```
 
 ```
-## [1] "7424 wuz here" "7460 wuz here" "7433 wuz here" "7451 wuz here"
-## [5] "7442 wuz here"
+## 8196 wuz here
+## 8204 wuz here
+## 8212 wuz here
+## 8228 wuz here
+## 8220 wuz here
 ```
+
+Note also that the order of the lines written is not the same as the order of the PIDs.  Because the file is polled for access by each process it is undefined which order they will get access in.
 
 ## Design condsiderations
 

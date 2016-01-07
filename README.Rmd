@@ -55,11 +55,13 @@ f <- function(lockfile, realfile) {
 ign <- parallel::clusterCall(cl, f, lockfile, realfile)
 ```
 
-The file now contains four entries, one from each node:
+The file now contains four entries, one from each node (plus the original line from the time we ran it locally):
 
 ```{r}
-readLines(realfile)
+writeLines(readLines(realfile))
 ```
+
+Note also that the order of the lines written is not the same as the order of the PIDs.  Because the file is polled for access by each process it is undefined which order they will get access in.
 
 ## Design condsiderations
 
