@@ -40,5 +40,4 @@ test_that("Parallel", {
   }
   tmp <- parallel::clusterCall(cl, f_remote, fn, "open")[[1]]
   expect_false(as.logical(tmp))
-  expect_equal(attr(tmp, "errno"), if (is_windows()) 13L else 11L)
 })
