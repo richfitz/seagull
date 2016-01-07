@@ -1,0 +1,10 @@
+^.*\.Rproj$
+^\.Rproj\.user$
+^Makefile$
+^README.Rmd$
+^.travis.yml$
+^appveyor.yml$
+^Makefile$
+^tests/testthat/lock$
+^ignore$
+^seagull_.*\.tar.gz$
