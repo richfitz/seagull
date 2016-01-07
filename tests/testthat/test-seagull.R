@@ -39,8 +39,8 @@ test_that("simple (hack)", {
 })
 
 test_that("lock_state", {
+  skip_on_os("windows")
   fn <- tempfile()
-  ## output <- tempfile()
   cl <- start_cluster(1)
   on.exit(stop_cluster(cl))
   pid <- parallel::clusterCall(cl, Sys.getpid)[[1]]
@@ -78,8 +78,10 @@ test_that("parallel", {
   expect_is(res[[1]][[2]], "LockFailed")
   expect_is(res[[2]][[2]], "LockFailed")
 
-  expect_equal(parallel::clusterCall(cl, f_remote, fn, "state")[[1]],
-               list(locked=TRUE, pid=Sys.getpid()))
+  if (!is_windows()) {
+    expect_equal(parallel::clusterCall(cl, f_remote, fn, "state")[[1]],
+                 list(locked=TRUE, pid=Sys.getpid()))
+  }
 })
 
 test_that("multi write (flock)", {

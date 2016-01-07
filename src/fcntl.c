@@ -65,10 +65,40 @@ int* seagull_get_fd(SEXP extPtr, int closed_error) {
   return fd;
 }
 
+#ifdef _WIN32
+
+// Windows (both 32 and 64 bit versions)
+// https://msdn.microsoft.com/en-us/library/8054ew2f.aspx
+
+#include <sys/locking.h>
+
 SEXP seagull_fcntl_lock(SEXP extPtr, SEXP r_open) {
-  int fd = *seagull_get_fd(extPtr, 1), open = INTEGER(r_open)[0], ok;
+  int fd = *seagull_get_fd(extPtr, 1), open = INTEGER(r_open)[0], ok, errsv;
   SEXP ret;
-  int errsv;
+  ok = _locking(fd, open ? _LK_NBLCK : _LK_UNLCK, 1L) == 0;
+  errsv = errno;
+  ret = PROTECT(allocVector(VECSXP, ok ? 1 : 3));
+  SET_VECTOR_ELT(ret, 0, ScalarLogical(ok));
+  if (!ok) {
+    SET_VECTOR_ELT(ret, 1, ScalarInteger(errsv));
+    SET_VECTOR_ELT(ret, 2, mkString(strerror(errsv)));
+  }
+  UNPROTECT(1);
+  return ret;
+}
+
+SEXP seagull_fcntl_state(SEXP extPtr) {
+  Rf_error("Not available on windows");
+  return R_NilValue;
+}
+
+#else
+
+// POSIX
+
+SEXP seagull_fcntl_lock(SEXP extPtr, SEXP r_open) {
+  int fd = *seagull_get_fd(extPtr, 1), open = INTEGER(r_open)[0], ok, errsv;
+  SEXP ret;
   struct flock fl;
   fl.l_type   = open ? F_WRLCK : F_UNLCK;
   fl.l_whence = SEEK_SET;
@@ -107,3 +137,4 @@ SEXP seagull_fcntl_state(SEXP extPtr) {
   UNPROTECT(1);
   return ret;
 }
+#endif

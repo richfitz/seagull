@@ -34,3 +34,7 @@ cores <- function() {
   chk <- tolower(Sys.getenv("_R_CHECK_LIMIT_CORES_", ""))
   if (nzchar(chk) && (chk != "false")) 2L else 4L
 }
+
+is_windows <- function() {
+  .Platform$OS.type == "windows"
+}
