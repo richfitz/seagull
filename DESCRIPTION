@@ -12,5 +12,5 @@ Imports:
     R6
 Suggests:
     parallel,
-    testthat
+    testthat (>= 0.11.0)
 RoxygenNote: 5.0.1
