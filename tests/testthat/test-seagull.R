@@ -160,3 +160,17 @@ test_that("multi write (with_flock)", {
   expect_true(all(dat %in% res))
   expect_true(all(pids %in% as.integer(sub(".* ([0-9]+) .*", "\\1", dat))))
 })
+
+test_that("null filename", {
+  fl <- flock(NULL)
+  expect_false(fl$acquired)
+  expect_true(fl$acquire())
+  expect_true(fl$acquired)
+  expect_true(fl$release())
+  expect_false(fl$acquired)
+
+  expect_equal(fl$acquire(error=FALSE), list(TRUE, NULL))
+  expect_true(fl$acquired)
+  expect_true(fl$release())
+  expect_false(fl$acquired)
+})

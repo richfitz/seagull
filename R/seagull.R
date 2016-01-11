@@ -24,7 +24,9 @@
 ##' \code{expr} is not evaluated.
 ##'
 ##' @title Evaluate expression with file lock
-##' @param filename The name of the lockfile.
+##'
+##' @param filename The name of the lockfile.  If \code{NULL}, no
+##'   lockfile is used and the action always runs.
 ##'
 ##' @param expr Expression to evaluate once the lock is acquired.
 ##'   This expression must not affect the file \code{filename} in any
@@ -80,7 +82,10 @@ with_flock_ <- function(filename, expr, envir=parent.frame(),
 ##' wrong you can cause deadlocks.
 ##'
 ##' @title Low-level flock object
-##' @param filename Name of file to lock
+##'
+##' @param filename Name of file to lock.  \code{NULL} is a fake lock;
+##'   acquire always succeeds.
+##'
 ##' @param method Method to use
 ##' @export
 flock <- function(filename, method="fcntl") {
@@ -101,9 +106,13 @@ flock <- function(filename, method="fcntl") {
     initialize=function(filename, method) {
       self$filename <- filename
       self$method <- match.arg(method, c("fcntl", "hack"))
-      self$lock <- switch(self$method,
-                          fcntl=fcntl_lock,
-                          hack=hack_lock)
+      if (is.null(filename)) {
+        self$lock <- function(...) TRUE
+      } else if (self$method == "fcntl") {
+        self$lock <- fcntl_lock
+      } else {
+        self$lock <- hack_lock
+      }
     },
 
     acquire=function(delay=0.01, max_delay=0.1, timeout=Inf, error=TRUE) {
@@ -117,12 +126,13 @@ flock <- function(filename, method="fcntl") {
         max_delay <- delay
       }
 
-      if (self$method == "fcntl") {
+      if (is.null(self$filename)) {
+        ## pass
+      } else if (self$method == "fcntl") {
         self$handle <- seagull_open(self$filename)
       } else {
         self$handle <- list(filename=self$filename, NULL)
       }
-
       res <- tryCatch(
         retry_logical(function() self$lock(self$handle, TRUE),
                       delay, max_delay, timeout),
@@ -150,7 +160,9 @@ flock <- function(filename, method="fcntl") {
         stop("Cannot release a lock that has not been acquired")
       }
       if (self$lock(self$handle, FALSE)) {
-        if (self$method == "fcntl") {
+        if (is.null(self$filename)) {
+          ## pass
+        } else if (self$method == "fcntl") {
           seagull_close(self$handle)
         }
         self$handle <- NULL

@@ -12,7 +12,8 @@ with_flock_(filename, expr, envir = parent.frame(), delay = 0.01,
   max_delay = 0.1, timeout = Inf, error = TRUE)
 }
 \arguments{
-\item{filename}{The name of the lockfile.}
+\item{filename}{The name of the lockfile.  If \code{NULL}, no
+lockfile is used and the action always runs.}
 
 \item{expr}{Expression to evaluate once the lock is acquired.
 This expression must not affect the file \code{filename} in any

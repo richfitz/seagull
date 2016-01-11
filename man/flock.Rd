@@ -7,7 +7,8 @@
 flock(filename, method = "fcntl")
 }
 \arguments{
-\item{filename}{Name of file to lock}
+\item{filename}{Name of file to lock.  \code{NULL} is a fake lock;
+acquire always succeeds.}
 
 \item{method}{Method to use}
 }
