@@ -52,19 +52,24 @@
 ##'   element being either a condition or the return value.  See
 ##'   Details.
 ##'
+##' @param verbose Print information as at each lock acquisition
+##'   attempt.  May be useful in debugging.
+##'
 ##' @export
 with_flock <- function(filename, expr, envir=parent.frame(),
-                       delay=0.01, max_delay=0.1, timeout=Inf, error=TRUE) {
+                       delay=0.01, max_delay=0.1, timeout=Inf, error=TRUE,
+                       verbose=FALSE) {
   with_flock_(filename, substitute(expr), envir,
-              delay, max_delay, timeout, error)
+              delay, max_delay, timeout, error, verbose)
 }
 
 ##' @export
 ##' @rdname with_flock
 with_flock_ <- function(filename, expr, envir=parent.frame(),
-                        delay=0.01, max_delay=0.1, timeout=Inf, error=TRUE) {
+                        delay=0.01, max_delay=0.1, timeout=Inf, error=TRUE,
+                        verbose=FALSE) {
   fl <- flock(filename)
-  ok <- fl$acquire(delay, max_delay, timeout, error)
+  ok <- fl$acquire(delay, max_delay, timeout, error, verbose)
   if (fl$acquired) {
     on.exit(fl$release())
     res <- eval(expr, envir)
@@ -115,7 +120,8 @@ flock <- function(filename, method="fcntl") {
       }
     },
 
-    acquire=function(delay=0.01, max_delay=0.1, timeout=Inf, error=TRUE) {
+    acquire=function(delay=0.01, max_delay=0.1, timeout=Inf, error=TRUE,
+                     verbose=FALSE) {
       if (delay < 0) {
         stop("Delay must be at least zero")
       }
@@ -130,6 +136,9 @@ flock <- function(filename, method="fcntl") {
         return(if (error) TRUE else list(TRUE, NULL))
       }
 
+      if (verbose && !is.null(self$filename)) {
+        message(sprintf("Acquiring lock on '%s'", self$filename), appendLF=FALSE)
+      }
       if (is.null(self$filename)) {
         ## pass
       } else if (self$method == "fcntl") {
@@ -139,7 +148,7 @@ flock <- function(filename, method="fcntl") {
       }
       res <- tryCatch(
         retry_logical(function() self$lock(self$handle, TRUE),
-                      delay, max_delay, timeout),
+                      delay, max_delay, timeout, verbose),
         RetryFailed=function(e) set_class(e, "LockFailed", TRUE))
 
       self$acquired <- isTRUE(res)

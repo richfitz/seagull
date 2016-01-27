@@ -6,10 +6,10 @@
 \title{Evaluate expression with file lock}
 \usage{
 with_flock(filename, expr, envir = parent.frame(), delay = 0.01,
-  max_delay = 0.1, timeout = Inf, error = TRUE)
+  max_delay = 0.1, timeout = Inf, error = TRUE, verbose = FALSE)
 
 with_flock_(filename, expr, envir = parent.frame(), delay = 0.01,
-  max_delay = 0.1, timeout = Inf, error = TRUE)
+  max_delay = 0.1, timeout = Inf, error = TRUE, verbose = FALSE)
 }
 \arguments{
 \item{filename}{The name of the lockfile.  If \code{NULL}, no
@@ -38,6 +38,9 @@ is returned.  If \code{FALSE} the return value is a list with
 the first element indicating success or not and the second
 element being either a condition or the return value.  See
 Details.}
+
+\item{verbose}{Print information as at each lock acquisition
+attempt.  May be useful in debugging.}
 }
 \description{
 Evaluate an expression after acquiring, and while holding, a file

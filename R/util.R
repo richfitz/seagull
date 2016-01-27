@@ -1,10 +1,13 @@
 ## TODO: this would be more useful perhaps if it took an expression
 ## but getting that right without the restarting delayed promise
 ## evaluation is hard.
-retry <- function(f, delay=0.01, max_delay=0.1, timeout=10) {
+retry <- function(f, delay=0.01, max_delay=0.1, timeout=10, verbose=FALSE) {
   f <- match.fun(f)
   t_max <- Sys.time() + as.difftime(timeout, units="secs")
   i <- 1L
+  if (verbose) {
+    on.exit(message(appendLF=TRUE))
+  }
   repeat {
     res <- tryCatch(return(f()),
                     RetryAgain=function(e) NULL)
@@ -13,6 +16,9 @@ retry <- function(f, delay=0.01, max_delay=0.1, timeout=10) {
     }
     Sys.sleep(min(max_delay, i * delay))
     i <- i + 1L
+    if (verbose) {
+      message(".", appendLF=FALSE)
+    }
   }
 }
 
