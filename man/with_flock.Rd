@@ -23,7 +23,11 @@ way (see warnings in the package README).}
 default is usually reasonable.}
 
 \item{delay}{Initial period to poll the file for release if it is
-locked.}
+locked.  Note this is a \emph{minimum} time to delay.  On POSIX
+system with \code{fcntl} I see delays around the 0.2s mark when
+accessing files over SMB so small values there are likely
+aspirational.  This time is also \emph{additional} to the
+\code{fcntl} call (i.e., the pattern is try to lock, then sleep).}
 
 \item{max_delay}{Maximum period between polls; the delay will grow
 from \code{delay} to \code{max_delay} over subsequent calls.}
@@ -68,5 +72,14 @@ an error, that error will still not be caught (use
 
 In either case, if a lock cannot be established the code in
 \code{expr} is not evaluated.
+}
+\section{Warning}{
+
+
+It is not safe to use the file for anything, including locking it
+  a second time (e.g. \code{with_flock(filename,
+  with_flock(filename, ...))}).  Simply opening or closing a
+  handle to a file will break the lock on non-Windows systems
+  (this is a limitation of the underlying system calls).
 }
 

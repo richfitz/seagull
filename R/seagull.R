@@ -23,6 +23,14 @@
 ##' In either case, if a lock cannot be established the code in
 ##' \code{expr} is not evaluated.
 ##'
+##' @section Warning:
+##'
+##' It is not safe to use the file for anything, including locking it
+##'   a second time (e.g. \code{with_flock(filename,
+##'   with_flock(filename, ...))}).  Simply opening or closing a
+##'   handle to a file will break the lock on non-Windows systems
+##'   (this is a limitation of the underlying system calls).
+##'
 ##' @title Evaluate expression with file lock
 ##'
 ##' @param filename The name of the lockfile.  If \code{NULL}, no
@@ -36,7 +44,11 @@
 ##'   default is usually reasonable.
 ##'
 ##' @param delay Initial period to poll the file for release if it is
-##'   locked.
+##'   locked.  Note this is a \emph{minimum} time to delay.  On POSIX
+##'   system with \code{fcntl} I see delays around the 0.2s mark when
+##'   accessing files over SMB so small values there are likely
+##'   aspirational.  This time is also \emph{additional} to the
+##'   \code{fcntl} call (i.e., the pattern is try to lock, then sleep).
 ##'
 ##' @param max_delay Maximum period between polls; the delay will grow
 ##'   from \code{delay} to \code{max_delay} over subsequent calls.
@@ -140,6 +152,7 @@ flock <- function(filename, method="fcntl") {
         message(sprintf("Acquiring lock on '%s'", self$filename), appendLF=FALSE)
       }
       if (is.null(self$filename)) {
+        ## This will return in the self$lock stage.
         ## pass
       } else if (self$method == "fcntl") {
         self$handle <- seagull_open(self$filename)
