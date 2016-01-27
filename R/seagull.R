@@ -121,6 +121,12 @@ flock <- function(filename, method="fcntl") {
     method=NULL,
 
     initialize=function(filename, method) {
+      ok <- is.null(filename) || (is.character(filename) &&
+                                  length(filename) == 1L &&
+                                  !is.na(filename))
+      if (!ok) {
+        stop("Filename must be a non-NA scalar character, or NULL")
+      }
       self$filename <- filename
       self$method <- match.arg(method, c("fcntl", "hack"))
       if (is.null(filename)) {
