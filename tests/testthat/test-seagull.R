@@ -174,3 +174,11 @@ test_that("null filename", {
   expect_true(fl$release())
   expect_false(fl$acquired)
 })
+
+test_that("multiple acquisitions", {
+  fl <- flock(tempfile())
+  expect_true(fl$acquire())
+  expect_true(fl$acquire())
+  expect_equal(fl$acquire(error=FALSE), c(list(TRUE, NULL)))
+  expect_true(fl$release())
+})

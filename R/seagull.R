@@ -126,6 +126,10 @@ flock <- function(filename, method="fcntl") {
         max_delay <- delay
       }
 
+      if (self$acquired) {
+        return(if (error) TRUE else list(TRUE, NULL))
+      }
+
       if (is.null(self$filename)) {
         ## pass
       } else if (self$method == "fcntl") {
