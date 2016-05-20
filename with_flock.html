@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+<title>with_flock. seagull 0.0.1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="">
+
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/bootstrap-responsive.css" rel="stylesheet">
+<link href="css/highlight.css" rel="stylesheet">
+<link href="css/staticdocs.css" rel="stylesheet">
+
+<!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+
+  <body>
+    <div class="navbar">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="brand" href="#">seagull 0.0.1</a>
+      <div class="nav">
+        <ul class="nav">
+          <li><a href="index.html"><i class="icon-home icon-white"></i> Index</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <div class="container">
+      <header>
+        
+      </header>
+      
+      <h1>Evaluate expression with file lock</h1>
+
+<div class="row">
+  <div class="span8">
+    <h2>Usage</h2>
+    <pre><div>with_flock(filename, expr, envir&nbsp;=&nbsp;parent.frame(), delay&nbsp;=&nbsp;0.01, max_delay&nbsp;=&nbsp;0.1, timeout&nbsp;=&nbsp;Inf, error&nbsp;=&nbsp;TRUE, verbose&nbsp;=&nbsp;FALSE)</div>
+<div>with_flock_(filename, expr, envir&nbsp;=&nbsp;parent.frame(), delay&nbsp;=&nbsp;0.01, max_delay&nbsp;=&nbsp;0.1, timeout&nbsp;=&nbsp;Inf, error&nbsp;=&nbsp;TRUE, verbose&nbsp;=&nbsp;FALSE)</div></pre>
+    
+    <h2>Arguments</h2>
+    <dl>
+      <dt>filename</dt>
+      <dd>The name of the lockfile.  If <code>NULL</code>, no
+lockfile is used and the action always runs.</dd>
+      <dt>expr</dt>
+      <dd>Expression to evaluate once the lock is acquired.
+This expression must not affect the file <code>filename</code> in any
+way (see warnings in the package README).</dd>
+      <dt>envir</dt>
+      <dd>Environment in which to evaluate <code>expr</code>.  The
+default is usually reasonable.</dd>
+      <dt>delay</dt>
+      <dd>Initial period to poll the file for release if it is
+locked.  Note this is a <em>minimum</em> time to delay.  On POSIX
+system with <code>fcntl</code> I see delays around the 0.2s mark when
+accessing files over SMB so small values there are likely
+aspirational.  This time is also <em>additional</em> to the
+<code>fcntl</code> call (i.e., the pattern is try to lock, then sleep).</dd>
+      <dt>max_delay</dt>
+      <dd>Maximum period between polls; the delay will grow
+from <code>delay</code> to <code>max_delay</code> over subsequent calls.</dd>
+      <dt>timeout</dt>
+      <dd>Total maximum time to wait.  If a lock cannot be
+acquired in this period, we either error or return without
+evaluating <code>expr</code> (see Details).</dd>
+      <dt>error</dt>
+      <dd>Is failure to acquire a lock an error?  If
+<code>TRUE</code> then an error is thrown or the value if <code>expr</code>
+is returned.  If <code>FALSE</code> the return value is a list with
+the first element indicating success or not and the second
+element being either a condition or the return value.  See
+Details.</dd>
+      <dt>verbose</dt>
+      <dd>Print information as at each lock acquisition
+attempt.  May be useful in debugging.</dd>
+    </dl>
+    
+    <div class="Description">
+      <h2>Description</h2>
+
+      <p>Evaluate an expression after acquiring, and while holding, a file
+lock.  The <code>with_flock_</code> version uses standard evaluation and
+is suitable for programming.</p>
+  
+    </div>
+
+    <div class="Details">
+      <h2>Details</h2>
+
+      <p>The behaviour on error is controlled by the <code>error</code> argument.
+If <code>TRUE</code> (the default) then if a lock cannot be established
+then <code>with_flock</code> will throw an error and not return.  If
+there is no error the return value is whatever <code>expr</code>
+evaluates to.  (If <code>expr</code> itself throws an error the lock
+will always be cleaned up, though this may fail if the lockfile is
+removed by the code in <code>expr</code> or another process -- try to
+avoid this!)</p>
+  
+      <p>If <code>error=FALSE</code> the return value is always a list of length
+2.  The first element is a logical scalar <code>TRUE</code> or
+<code>FALSE</code> indicating if the lock was acquired and the
+expression evaluated.  The second element is the value of
+<code>expr</code> if the lock was acquired or a condition object
+describing why the lock was not acquired.  If <code>expr</code> throws
+an error, that error will still not be caught (use
+<code>tryCatch</code>).</p>
+  
+      <p>In either case, if a lock cannot be established the code in
+<code>expr</code> is not evaluated.</p>
+  
+    </div>
+
+    <div class="Warning">
+      <h2>Warning</h2>
+
+      <p></p>
+  
+      <p>It is not safe to use the file for anything, including locking it
+  a second time (e.g. <code>with_flock(filename,
+  with_flock(filename, ...))</code>).  Simply opening or closing a
+  handle to a file will break the lock on non-Windows systems
+  (this is a limitation of the underlying system calls).</p>
+  
+    </div>
+    
+    <h2 id="examples">Examples</h2>
+    <pre class="examples"><div class='input'>## Demonstrating this is difficult because for a lock to fail
+## another process needs to hold a lock on the file.  But the
+## basic approach for using it is below.
+
+## First, we have a file that we want to modify; say path:
+path &lt;- tempfile()
+writeLines(c(&quot;a&quot;, &quot;b&quot;, &quot;c&quot;), path)
+
+## Then we have another file that we&#39;ll use as a lock.  We can&#39;t
+## safely write to this file (see notes above) so it&#39;s simplest to
+## have a separate file here.
+lock &lt;- paste0(path, &quot;.lock&quot;)
+
+## Suppose we want to take the first element of the data in &#39;path&#39;.
+## This involves a read and a write operation so is not atomic -
+## another process could read the file in the meantime and we&#39;d
+## both pull the same element out.  But if we advertise that we&#39;re
+## using it by using a lock the other process can wait until we
+## release the lock:
+res &lt;- with_flock(lock, {
+  txt &lt;- readLines(path)
+  writeLines(txt[-1], path)
+  txt[[1]]
+})
+res
+</div>
+<div class='output'>[1] &quot;a&quot;
+</div></pre>
+  </div>
+  <div class="span4">
+    <!-- <ul>
+      <li>with_flock</li><li>with_flock_</li>
+    </ul>
+    <ul>
+      
+    </ul> -->
+      
+        
+  </div>
+</div>
+      
+      <footer>
+      <p class="pull-right"><a href="#">Back to top</a></p>
+<p>Built by <a href="https://github.com/hadley/staticdocs">staticdocs</a>. Styled with <a href="http://twitter.github.com/bootstrap">bootstrap</a>.</p>
+      </footer>
+    </div>
+  </body>
+</html>

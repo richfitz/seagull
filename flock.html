@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+<title>flock. seagull 0.0.1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="">
+
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/bootstrap-responsive.css" rel="stylesheet">
+<link href="css/highlight.css" rel="stylesheet">
+<link href="css/staticdocs.css" rel="stylesheet">
+
+<!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+
+  <body>
+    <div class="navbar">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="brand" href="#">seagull 0.0.1</a>
+      <div class="nav">
+        <ul class="nav">
+          <li><a href="index.html"><i class="icon-home icon-white"></i> Index</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <div class="container">
+      <header>
+        
+      </header>
+      
+      <h1>Low-level flock object</h1>
+
+<div class="row">
+  <div class="span8">
+    <h2>Usage</h2>
+    <pre><div>flock(filename, method&nbsp;=&nbsp;"fcntl")</div></pre>
+    
+    <h2>Arguments</h2>
+    <dl>
+      <dt>filename</dt>
+      <dd>Name of file to lock.  <code>NULL</code> is a fake lock;
+acquire always succeeds.</dd>
+      <dt>method</dt>
+      <dd>Method to use</dd>
+    </dl>
+    
+    <div class="Description">
+      <h2>Description</h2>
+
+      <p>Low-level flock object.  Use this if you need more flexibility
+than <code><a href='with_flock.html'>with_flock</a></code>, but understand that if you get it
+wrong you can cause deadlocks.</p>
+  
+    </div>
+
+    <div class="Methods">
+      <h2>Methods</h2>
+
+      <p></p>
+  
+      <p><dl>
+<dt><code>acquire</code></dt><dd>
+  Attempt to acquire a lock on the file.  For details on arguments see the main argument section above.</p>
+  
+      <p><em>Usage:</em>
+  <code>acquire(delay = 0.01, max_delay = 0.1, timeout = Inf, error = TRUE,
+      verbose = FALSE)</code></p>
+  
+      <p><em>Arguments:</em>
+  <ul>
+<li><code>delay</code>:   Initial delay</p>
+  
+      <p></li>
+<li><code>max_delay</code>:   Maximum delay between attempts</p>
+  
+      <p></li>
+<li><code>timeout</code>:   Maximum time to wait</p>
+  
+      <p></li>
+<li><code>error</code>:   Throw an error on failure?</p>
+  
+      <p></li>
+<li><code>verbose</code>:   Print information while attempting to acquire lock?</p>
+  
+      <p></li>
+</ul></p>
+  
+      <p></dd></p>
+  
+      <p><dt><code>release</code></dt><dd>
+  Release the lock.</p>
+  
+      <p><em>Usage:</em>
+  <code>release()</code>
+</dd></p>
+  
+      <p></dl></p>
+  
+      <p></p>
+  
+    </div>
+      </div>
+  <div class="span4">
+    <!-- <ul>
+      <li>flock</li>
+    </ul>
+    <ul>
+      
+    </ul> -->
+      
+        
+  </div>
+</div>
+      
+      <footer>
+      <p class="pull-right"><a href="#">Back to top</a></p>
+<p>Built by <a href="https://github.com/hadley/staticdocs">staticdocs</a>. Styled with <a href="http://twitter.github.com/bootstrap">bootstrap</a>.</p>
+      </footer>
+    </div>
+  </body>
+</html>

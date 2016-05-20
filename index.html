@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+<title>Index. seagull 0.0.1</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Rich FitzJohn">
+
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/bootstrap-responsive.css" rel="stylesheet">
+<link href="css/highlight.css" rel="stylesheet">
+<link href="css/staticdocs.css" rel="stylesheet">
+
+<!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+
+  <body>
+    <div class="navbar">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="brand" href="#">seagull 0.0.1</a>
+      <div class="nav">
+        <ul class="nav">
+          <li><a href="index.html"><i class="icon-home icon-white"></i> Index</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <div class="container">
+      <header>
+        
+      </header>
+      
+      <div class="row">
+  <div class="span8">
+    <h1>seagull</h1>
+
+<p><a href="https://travis-ci.org/richfitz/seagull"><img src="https://travis-ci.org/richfitz/seagull.svg?branch=master" alt="Linux Build Status"/></a>
+<a href="https://ci.appveyor.com/project/richfitz/seagull"><img src="https://ci.appveyor.com/api/projects/status/github/richfitz/seagull?svg=true" alt="Windows Build status"/></a></p>
+
+<p>Portable file locking for R.  Based on the &ldquo;inter process&rdquo; locks in the Python <a href="https://pypi.python.org/pypi/fasteners">fasteners</a> package.</p>
+
+<p>The package provides a function <code>with_flock</code> which evaluates an expression only if a file lock can be obtained.  By default it will block and periodically retry to  open the file.</p>
+
+<p>For example, suppose you want to place an advisory lock in a directory <code>path</code>.  We can create a lockfile in that directory and then we can do whatever we want in the directory &ndash; other processes obeying this convention will wait:</p>
+
+<pre><code class="r">path &lt;- tempfile()
+dir.create(path)
+lockfile &lt;- file.path(path, &quot;lock&quot;)
+realfile &lt;- file.path(path, &quot;db&quot;)
+seagull::with_flock(lockfile, {
+  prev &lt;- if (file.exists(realfile)) readLines(realfile) else character(0)
+  writeLines(c(prev, paste(Sys.getpid(), &quot;wuz here&quot;)), realfile)
+})
+</code></pre>
+
+<pre><code>## NULL
+</code></pre>
+
+<pre><code class="r">readLines(realfile)
+</code></pre>
+
+<pre><code>## [1] &quot;8196 wuz here&quot;
+</code></pre>
+
+<p>The code above will wait until the db file is ready, read it, add a new line to it, then release the lock.  If multiple processes were trying to do this at once they would access the file in an unspecified order but a race condition between read and write is eliminated.</p>
+
+<p>For example:</p>
+
+<pre><code class="r">cl &lt;- parallel::makeCluster(4, &quot;PSOCK&quot;)
+ign &lt;- parallel::clusterEvalQ(cl, library(seagull))
+pids &lt;- unlist(parallel::clusterCall(cl, Sys.getpid))
+pids
+</code></pre>
+
+<pre><code>## [1] 8204 8212 8220 8228
+</code></pre>
+
+<p>Run the code from above (slightly awkward due to controlling the cluster):</p>
+
+<pre><code class="r">f &lt;- function(lockfile, realfile) {
+  seagull::with_flock(lockfile, {
+    prev &lt;- if (file.exists(realfile)) readLines(realfile) else character(0)
+    writeLines(c(prev, paste(Sys.getpid(), &quot;wuz here&quot;)), realfile)
+  })
+}
+ign &lt;- parallel::clusterCall(cl, f, lockfile, realfile)
+</code></pre>
+
+<p>The file now contains four entries, one from each node (plus the original line from the time we ran it locally):</p>
+
+<pre><code class="r">writeLines(readLines(realfile))
+</code></pre>
+
+<pre><code>## 8196 wuz here
+## 8204 wuz here
+## 8212 wuz here
+## 8228 wuz here
+## 8220 wuz here
+</code></pre>
+
+<p>Note also that the order of the lines written is not the same as the order of the PIDs.  Because the file is polled for access by each process it is undefined which order they will get access in.</p>
+
+<h2>Design condsiderations</h2>
+
+<p><strong>Portability</strong>.  On unix systems this uses <code>fcntl</code> which should work on Linux and BSD based systems, modern NFS and SMB.  On Windows it uses the Win32 API (<code>_locking</code> from <code>sys/locking.h</code>).</p>
+
+<p><strong>This package does not use R&#39;s connection objects</strong>.  A sane native implementation of file locking would use the result of <code>file(...)</code>, but because of the way R&#39;s connection objects are implemented this is not possible (the actual file descriptor object is stored in the private data of the connection object and the format of that is non-API).</p>
+
+<p>Unfortunately with the <a href="http://0pointer.de/blog/projects/locking.html">implementation of unix file locking</a> the lock will be broken if <em>any</em> connection to the object is closed.  So it is in general unsafe to open a second connection to the file object.  A possibly safe pattern would be:</p>
+
+<ol>
+<li>Acquire lock</li>
+<li>Open a second connection to the file</li>
+<li>Write whatever you need to write</li>
+<li>Close the file</li>
+<li>Immediately close the lock</li>
+</ol>
+
+<p>The lock will be lost at step 4 above but that should not matter as <code>seagull</code> never writes to the files it holds.  Note that this situation applies to things like <code>writeLines</code>, <code>write.csv</code>, etc; those functions encompass steps 2-4 in the above.</p>
+
+<p>Future versions may implement the full connection interface to allow passing the locked file around as an R connection.</p>
+
+<h2>Installation</h2>
+
+<pre><code class="r">devtools::install_github(&quot;richfitz/seagull&quot;)
+</code></pre>
+
+<h2>License</h2>
+
+<p>MIT + file LICENSE © <a href="https://github.com/richfitz">Rich FitzJohn</a>.</p>
+
+
+    <h2>Help topics</h2>
+
+    <h3></h3>
+    
+    
+    <ul class="index">
+        
+      <li>
+        <code><a href="flock.html">flock</a></code><br />Low-level flock object</li>
+            
+      <li>
+        <code><a href="with_flock.html">with_flock</a></code>(with_flock_)<br />Evaluate expression with file lock</li>
+    
+    </ul>
+  </div>
+  
+  <div class="span3 offset1">
+        
+    <h2>Dependencies</h2>
+    <ul>
+      
+      <li><strong>Imports</strong>: R6</li>
+      <li><strong>Suggests</strong>: parallel, testthat</li>
+      
+    </ul>
+    <h2>Authors</h2>
+    <ul>
+    </ul>
+
+  </div>
+</div>
+      
+      <footer>
+      <p class="pull-right"><a href="#">Back to top</a></p>
+<p>Built by <a href="https://github.com/hadley/staticdocs">staticdocs</a>. Styled with <a href="http://twitter.github.com/bootstrap">bootstrap</a>.</p>
+      </footer>
+    </div>
+  </body>
+</html>
