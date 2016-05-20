@@ -10,3 +10,4 @@
 ^seagull_.*\.tar.gz$
 ^man-roxygen$
 ^autodoc.R$
+^update_web\.sh$
