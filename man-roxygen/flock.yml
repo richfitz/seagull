@@ -1,0 +1,21 @@
+acquire:
+  short: >-
+    Attempt to acquire a lock on the file.  For details on arguments
+    see the main argument section above.
+  params:
+    delay: Initial delay
+    max_delay: Maximum delay between attempts
+    timeout: Maximum time to wait
+    error: Throw an error on failure?
+    verbose: Print information while attempting to acquire lock?
+  return: >-
+    If \code{error} is \code{TRUE}, this returns \codE{TRUE} on
+    success or throws an error on failure.  If \code{error} is
+    \code{FALSE}, it will always return a two element list.  The first
+    element is a logical \code{TRUE}/\code{FALSE} indicating success
+    or not.  The second element is \code{NULL} on success or on
+    failure a character string with the reported reason for the
+    failure.  This is platform and filesystem dependent.
+release:
+  short: >-
+    Release the lock.

@@ -8,3 +8,5 @@
 ^tests/testthat/lock$
 ^ignore$
 ^seagull_.*\.tar.gz$
+^man-roxygen$
+^autodoc.R$

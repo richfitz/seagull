@@ -82,4 +82,31 @@ It is not safe to use the file for anything, including locking it
   handle to a file will break the lock on non-Windows systems
   (this is a limitation of the underlying system calls).
 }
+\examples{
+## Demonstrating this is difficult because for a lock to fail
+## another process needs to hold a lock on the file.  But the
+## basic approach for using it is below.
+
+## First, we have a file that we want to modify; say path:
+path <- tempfile()
+writeLines(c("a", "b", "c"), path)
+
+## Then we have another file that we'll use as a lock.  We can't
+## safely write to this file (see notes above) so it's simplest to
+## have a separate file here.
+lock <- paste0(path, ".lock")
+
+## Suppose we want to take the first element of the data in 'path'.
+## This involves a read and a write operation so is not atomic -
+## another process could read the file in the meantime and we'd
+## both pull the same element out.  But if we advertise that we're
+## using it by using a lock the other process can wait until we
+## release the lock:
+res <- with_flock(lock, {
+  txt <- readLines(path)
+  writeLines(txt[-1], path)
+  txt[[1]]
+})
+res
+}
 
