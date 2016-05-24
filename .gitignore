@@ -2,3 +2,4 @@
 .Rhistory
 .RData
 inst/web
+seagull_*.tar.gz

@@ -11,7 +11,7 @@ knitr::opts_chunk$set(
 [![Linux Build Status](https://travis-ci.org/richfitz/seagull.svg?branch=master)](https://travis-ci.org/richfitz/seagull)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/github/richfitz/seagull?svg=true)](https://ci.appveyor.com/project/richfitz/seagull)
 
-Portable file locking for R.  Based on the "inter process" locks in the Python [fasteners](https://pypi.python.org/pypi/fasteners) package.
+Portable file locking for R.  The approach and interface is based on the "inter process" locks in the Python [fasteners](https://pypi.python.org/pypi/fasteners) package.
 
 The package provides a function `with_flock` which evaluates an expression only if a file lock can be obtained.  By default it will block and periodically retry to  open the file.
 

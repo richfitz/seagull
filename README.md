@@ -5,7 +5,7 @@
 [![Linux Build Status](https://travis-ci.org/richfitz/seagull.svg?branch=master)](https://travis-ci.org/richfitz/seagull)
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/github/richfitz/seagull?svg=true)](https://ci.appveyor.com/project/richfitz/seagull)
 
-Portable file locking for R.  Based on the "inter process" locks in the Python [fasteners](https://pypi.python.org/pypi/fasteners) package.
+Portable file locking for R.  The approach and interface is based on the "inter process" locks in the Python [fasteners](https://pypi.python.org/pypi/fasteners) package.
 
 The package provides a function `with_flock` which evaluates an expression only if a file lock can be obtained.  By default it will block and periodically retry to  open the file.
 
@@ -33,7 +33,7 @@ readLines(realfile)
 ```
 
 ```
-## [1] "15966 wuz here"
+## [1] "16179 wuz here"
 ```
 
 The code above will wait until the db file is ready, read it, add a new line to it, then release the lock.  If multiple processes were trying to do this at once they would access the file in an unspecified order but a race condition between read and write is eliminated.
@@ -49,7 +49,7 @@ pids
 ```
 
 ```
-## [1] 15975 15984 15993 16002
+## [1] 16188 16197 16206 16215
 ```
 
 Run the code from above (slightly awkward due to controlling the cluster):
@@ -73,11 +73,11 @@ writeLines(readLines(realfile))
 ```
 
 ```
-## 15966 wuz here
-## 16002 wuz here
-## 15993 wuz here
-## 15984 wuz here
-## 15975 wuz here
+## 16179 wuz here
+## 16206 wuz here
+## 16215 wuz here
+## 16197 wuz here
+## 16188 wuz here
 ```
 
 Note also that the order of the lines written is not the same as the order of the PIDs.  Because the file is polled for access by each process it is undefined which order they will get access in.
