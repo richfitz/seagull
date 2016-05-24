@@ -1,3 +1,5 @@
+
+
 # seagull
 
 [![Linux Build Status](https://travis-ci.org/richfitz/seagull.svg?branch=master)](https://travis-ci.org/richfitz/seagull)
@@ -31,7 +33,7 @@ readLines(realfile)
 ```
 
 ```
-## [1] "8196 wuz here"
+## [1] "15966 wuz here"
 ```
 
 The code above will wait until the db file is ready, read it, add a new line to it, then release the lock.  If multiple processes were trying to do this at once they would access the file in an unspecified order but a race condition between read and write is eliminated.
@@ -47,7 +49,7 @@ pids
 ```
 
 ```
-## [1] 8204 8212 8220 8228
+## [1] 15975 15984 15993 16002
 ```
 
 Run the code from above (slightly awkward due to controlling the cluster):
@@ -71,14 +73,16 @@ writeLines(readLines(realfile))
 ```
 
 ```
-## 8196 wuz here
-## 8204 wuz here
-## 8212 wuz here
-## 8228 wuz here
-## 8220 wuz here
+## 15966 wuz here
+## 16002 wuz here
+## 15993 wuz here
+## 15984 wuz here
+## 15975 wuz here
 ```
 
 Note also that the order of the lines written is not the same as the order of the PIDs.  Because the file is polled for access by each process it is undefined which order they will get access in.
+
+
 
 ## Design condsiderations
 

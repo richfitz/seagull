@@ -63,6 +63,10 @@ writeLines(readLines(realfile))
 
 Note also that the order of the lines written is not the same as the order of the PIDs.  Because the file is polled for access by each process it is undefined which order they will get access in.
 
+```{r, results="hide", echo=FALSE}
+parallel::stopCluster(cl)
+```
+
 ## Design condsiderations
 
 **Portability**.  On unix systems this uses `fcntl` which should work on Linux and BSD based systems, modern NFS and SMB.  On Windows it uses the Win32 API (`_locking` from `sys/locking.h`).
