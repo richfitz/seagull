@@ -17,6 +17,6 @@ test_that("retry", {
 
   res <- replicate(10, retry(make_f(), 0), simplify=FALSE)
 
-  expect_more_than(max(vapply(res, function(x) x[[1]], integer(1))), 1)
-  expect_less_than(min(vapply(res, function(x) x[[2]], numeric(1))), crit)
+  expect_gt(max(vapply(res, function(x) x[[1]], integer(1))), 1)
+  expect_lt(min(vapply(res, function(x) x[[2]], numeric(1))), crit)
 })

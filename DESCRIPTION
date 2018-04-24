@@ -14,3 +14,4 @@ Suggests:
     parallel,
     testthat (>= 0.11.0)
 RoxygenNote: 5.0.1
+Encoding: UTF-8
